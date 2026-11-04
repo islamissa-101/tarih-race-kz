@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://vccbxpoykbnwjndsomhw.supabase.co wss://vccbxpoykbnwjndsomhw.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Тарих Race KZ — GAME HUB CYB26-01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,800;1,900&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/race.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+ <div class="hud-l">
+  <div class="chip"><small>ӨМІР</small><span class="hearts" id="hLives">♥♥♥</span></div>
+  <div class="chip"><small>МОНЕТА</small><span id="hCoins">0</span></div>
+  <div class="chip"><small>ҰПАЙ</small><span id="hScore">0</span></div>
+ </div>
+ <div id="progress"><div class="pbar" id="pbar"><div class="fill" id="pfill"></div></div><div class="plabel">6-ТРАССА · ҚАЗАҚ ХАНДЫҒЫ · МӘРЕГЕ ДЕЙІН</div></div>
+ <div class="hud-r">
+  <div class="chip"><small>УАҚЫТ</small><span id="hTime">00:00.0</span></div>
+  <div class="chip"><small>КМ/САҒ</small><span id="hSpeed">0</span></div>
+  <button id="pauseBtn" aria-label="Пауза">II</button>
+ </div>
+</div>
+<div id="hudBottom" class="hidden">
+ <div class="nitro"><small>НИТРО</small><div class="nb"><u id="hNitro"></u></div></div>
+ <button id="abilityBtn"><b>Қабілет</b></button>
+</div>
+<div id="touch" class="hidden">
+ <div class="grp"><button id="tLeft" aria-label="Солға">◀</button><button id="tRight" aria-label="Оңға">▶</button></div>
+ <div class="grp"><button id="tBrake" class="sm">ТЕЖЕУ</button><button id="tNitro" class="sm">НИТРО</button></div>
+</div>
+<div id="center"></div>
+<div id="toast"></div>
+
+<div id="overlay">
+ <!-- SELECT -->
+ <div class="panel" id="scr-select">
+  <div class="qhead"><div><p class="eyebrow">Тарих Race KZ · <span id="playerName"></span></p><h2 style="font-size:clamp(26px,4vw,38px);margin-top:6px">Кіммен жарысасыз?</h2></div><div class="row"><a class="btn ghost" href="../">GAME HUB</a><a class="btn ghost" href="../#rating">Рейтинг</a><button class="btn" id="startBtn">Бастау ▶</button></div></div>
+  <div class="chars" id="chars"></div>
+  <div class="controls">
+   <div><b style="color:var(--light)">Компьютер</b><br><kbd>↑</kbd>/<kbd>W</kbd> газ · <kbd>↓</kbd>/<kbd>S</kbd> тежеу · <kbd>←</kbd><kbd>→</kbd> бұрылу<br><kbd>Space</kbd> нитро · <kbd>E</kbd> қабілет · <kbd>P</kbd> пауза</div>
+   <div><b style="color:var(--light)">Телефон</b><br>Газ автоматты. ◀ ▶ бұрылу, НИТРО және ТЕЖЕУ батырмалары. Сұрақтарда жауапты басыңыз.</div>
+  </div>
+  <p class="note" style="margin-top:12px">Мақсат: мәреге жету. Жолда 6 «Тарихи кедергі»: дұрыс жауап → +100 ұпай және нитро, қате → 3 сек айыппұл. Тасқа немесе қарсыласқа соғылсаңыз — өмір −1. Жауаптарды және ұпайды сервер тексереді.</p>
+ </div>
+
+ <!-- LOADING -->
+ <div class="panel narrow hidden" id="scr-loading" style="text-align:center">
+  <p class="sub" id="loadMsg">Жүктелуде…</p>
+  <div class="row hidden" id="loadBtns" style="justify-content:center;margin-top:16px"><button class="btn" id="loadRetry">Қайталау</button><button class="btn ghost" id="loadMenu">Мәзір</button></div>
+ </div>
+
+ <!-- QUESTION -->
+ <div class="panel narrow hidden" id="scr-question">
+  <div class="qhead"><span class="qtag" id="qTag">ТАРИХИ КЕДЕРГІ</span><span class="qtype" id="qType">Бір дұрыс жауап</span></div>
+  <div class="qtimer"><u id="qBar"></u></div>
+  <p class="qtext" id="qText"></p>
+  <div id="qBody"></div>
+  <p class="qwait hidden" id="qWait"></p>
+  <div id="qFb" class="fb hidden"></div>
+  <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn hidden" id="qNext">Жалғастыру ▶</button></div>
+ </div>
+
+ <!-- DEATH -->
+ <div class="panel narrow hidden death" id="scr-death">
+  <p class="disp">СІЗ ЖЕҢІЛДІҢІЗ!</p>
+  <p class="sub" style="margin:14px 0 6px">Бірақ тарихи біліміңіз Сізді құтқара алады.<br>Медициналық көмек алу үшін тарихи тапсырманы орындаңыз.</p>
+  <p class="qtext" style="margin:16px 0">Медициналық көмек қажет пе?</p>
+  <div class="row" style="justify-content:center"><button class="btn" id="dYes">Иә</button><button class="btn ghost" id="dNo">Жоқ</button></div>
+  <p class="note" id="dLeft" style="margin-top:14px"></p>
+ </div>
+
+ <!-- NO HELP -->
+ <div class="panel narrow hidden death" id="scr-nohelp">
+  <p class="disp" style="color:#FF8A7A">Медициналық көмек көрсетілмеді</p>
+  <p class="sub" style="margin:14px 0 20px">Жауап қате болды. Трассаны қайта бастауға немесе нәтижені сақтауға болады.</p>
+  <div class="row" style="justify-content:center"><button class="btn" id="nhRestart">Трассаны қайта бастау</button><button class="btn ghost" id="nhSave">Нәтижені сақтау</button></div>
+ </div>
+
+ <!-- PAUSE -->
+ <div class="panel narrow hidden" id="scr-pause" style="text-align:center">
+  <p class="disp" style="font-size:48px">ПАУЗА</p>
+  <div class="row" style="justify-content:center;margin-top:18px"><button class="btn" id="resumeBtn">Жалғастыру</button><button class="btn ghost" id="restartBtn">Қайта бастау</button><button class="btn ghost" id="menuBtn">Мәзір</button></div>
+ </div>
+
+ <!-- RESULT -->
+ <div class="panel hidden" id="scr-result">
+  <p class="eyebrow" id="rEyebrow">Нәтиже</p>
+  <h2 style="font-size:clamp(30px,5vw,48px);margin-top:6px" id="rTitle">Мәреге жеттіңіз!</h2>
+  <div class="stats" id="rStats"></div>
+  <p class="note" id="rNote"></p>
+  <h3 style="margin-top:18px;font-size:18px">Рейтинг · үздік 10</h3>
+  <div id="rBoard"></div>
+  <div class="row" style="margin-top:18px"><button class="btn" id="againBtn">Қайта ойнау</button><button class="btn ghost" id="changeBtn">Кейіпкер ауыстыру</button><a class="btn ghost" href="../#results">Менің нәтижелерім</a></div>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="../assets/config.js"></script>
+<script src="../assets/api.js"></script>
+<script src="../assets/ui.js"></script>
+<script src="../assets/race.js"></script>
+</body>
+</html>

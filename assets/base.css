@@ -1,0 +1,30 @@
+:root{--dark:#101826;--dark2:#18243A;--line:#2E3A52;--light:#F3EEE4;--gold:#E8B84A;--blue:#3FA9D6;--red:#C8643B;--muted:#C9D3E0;--muted2:#8C97A8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--dark);color:var(--light);font-family:'Rubik',Arial,sans-serif}
+h1,h2,.disp{font-family:'Montserrat',Arial,sans-serif;font-style:italic;font-weight:900}
+button{font-family:inherit;cursor:pointer;border:none}
+a{color:var(--blue)}
+.hidden{display:none!important}
+.btn{background:var(--gold);color:var(--dark);font-weight:700;font-size:16px;padding:12px 24px;border-radius:999px;transition:transform .1s,filter .1s;text-decoration:none;display:inline-block}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--light);border:2px solid var(--muted2)}
+.btn.blue{background:#1F6F96;color:var(--light)}
+.btn:disabled{opacity:.4;cursor:default}
+.eyebrow{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700}
+.sub{color:var(--muted);font-size:17px;line-height:1.45}
+.note{font-size:14px;color:var(--muted2);line-height:1.45}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.err{color:#FF8A7A;font-size:14px;min-height:18px}
+input.txt{font-family:inherit;font-size:17px;padding:11px 15px;border-radius:12px;border:2px solid var(--line);background:var(--dark2);color:var(--light);width:min(360px,100%)}
+input.txt:focus{outline:none;border-color:var(--gold)}
+table.board{width:100%;border-collapse:collapse;font-size:15px}
+table.board th{background:var(--gold);color:var(--dark);text-align:left;padding:9px}
+table.board td{padding:9px;border-bottom:1px solid var(--line)}
+table.board tr.me td{background:rgba(232,184,74,.15)}
+table.board td.num,table.board th.num{text-align:right;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.st{background:var(--dark2);border-radius:12px;padding:12px}
+.st small{color:var(--muted2);font-size:12px;display:block}
+.st b{font-size:24px}
+.demo-badge{display:inline-block;background:var(--red);color:var(--light);font-weight:700;font-size:12px;letter-spacing:2px;padding:4px 10px;border-radius:999px;vertical-align:middle}
+.tablewrap{overflow-x:auto}

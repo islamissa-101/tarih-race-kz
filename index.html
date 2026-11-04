@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.googleusercontent.com; connect-src https://vccbxpoykbnwjndsomhw.supabase.co wss://vccbxpoykbnwjndsomhw.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Қазақстан тарихы — GAME HUB CYB26-01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,800;1,900&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/hub.css">
+</head>
+<body>
+<!-- 1-БЕТ: КІРУ -->
+<main id="login" class="login hidden">
+ <div class="login-card">
+  <p class="eyebrow">Қазақстан тарихы</p>
+  <h1 class="login-title">GAME HUB<br><span>CYB26-01</span></h1>
+  <p class="sub">Тарихты ойын арқылы меңгеру: ойна, жарыс, рейтингте жоғары көтеріл.</p>
+  <button class="btn google" id="googleBtn"><span class="g">G</span> Google арқылы кіру</button>
+  <p class="err" id="loginErr"></p>
+  <p class="note">Кіру Google OAuth 2.0 арқылы. Біз тек атыңызды және email-ді аламыз; құпиясөз сайтқа берілмейді.</p>
+ </div>
+</main>
+
+<!-- 2-БЕТ: ПОРТАЛ -->
+<div id="app" class="hidden">
+ <header class="top">
+  <div class="brand"><b>GAME HUB</b> <span>CYB26-01</span></div>
+  <nav id="nav">
+   <a href="#games" data-v="games">Ойындар тізімі</a>
+   <a href="#rating" data-v="rating">Рейтинг</a>
+   <a href="#profile" data-v="profile">Профиль баптаулары</a>
+   <a href="#results" data-v="results">Нәтижелер</a>
+   <a href="#admin" data-v="admin" id="navAdmin" class="hidden">Админ баптаулары</a>
+   <a href="#system" data-v="system">Рейтинг жүйесі</a>
+  </nav>
+  <div class="me"><img id="meAva" alt="" class="hidden"><span id="meName"></span><button class="btn ghost sm" id="logoutBtn">Шығу</button></div>
+ </header>
+
+ <section class="view" id="v-games">
+  <h2>Ойындар тізімі</h2>
+  <div class="games" id="games"></div>
+ </section>
+
+ <section class="view hidden" id="v-rating">
+  <h2>Рейтинг</h2>
+  <p class="note">Әр студенттің ең жақсы нәтижесі. Рейтингке тек сервер жаза алады.</p>
+  <div class="tablewrap" id="ratingBox"></div>
+ </section>
+
+ <section class="view hidden" id="v-profile">
+  <h2>Профиль баптаулары</h2>
+  <div class="prof">
+   <div class="prof-card">
+    <p class="note">Google аккаунты</p>
+    <p class="big" id="pFull"></p>
+    <p class="note" id="pEmail"></p>
+    <form id="nameForm" class="col">
+     <label class="note" for="dispName">Рейтингте көрсетілетін ат</label>
+     <div class="row"><input class="txt" id="dispName" maxlength="30" autocomplete="off"><button class="btn" type="submit">Сақтау</button></div>
+     <p class="err" id="nameMsg"></p>
+    </form>
+   </div>
+   <div class="stats" id="pStats"></div>
+  </div>
+ </section>
+
+ <section class="view hidden" id="v-results">
+  <h2>Нәтижелер</h2>
+  <p class="note">Соңғы 30 жарысыңыз.</p>
+  <div class="tablewrap" id="resultsBox"></div>
+ </section>
+
+ <section class="view hidden" id="v-admin">
+  <h2>Админ баптаулары</h2>
+  <div class="stats" id="aStats"></div>
+  <h3>Студенттер</h3>
+  <div class="tablewrap" id="aUsers"></div>
+  <h3>Соңғы жарыстар</h3>
+  <div class="tablewrap" id="aRaces"></div>
+  <p class="note">Сұрақтарды өзгерту: Supabase → Table Editor → questions. Админ құқығын беру: SQL Editor-да <code>update profiles set is_admin = true where email = '…';</code></p>
+ </section>
+
+ <section class="view hidden" id="v-system">
+  <h2>Рейтинг жүйесі</h2>
+  <div class="sys">
+   <div><h3>Ұпай қалай есептеледі</h3>
+    <table class="board"><tr><th>Не үшін</th><th class="num">Ұпай</th></tr>
+     <tr><td>Әр дұрыс жауап (тарихи кедергі немесе медициналық көмек)</td><td class="num">+100</td></tr>
+     <tr><td>Әр монета</td><td class="num">+5</td></tr>
+     <tr><td>Мәреге жеткенде: әр қалған өмір</td><td class="num">+100</td></tr>
+     <tr><td>Мәреге жеткенде: 3 минуттан жылдам әр секунд</td><td class="num">+5</td></tr>
+     <tr><td>Қате жауап</td><td class="num">3 сек айыппұл</td></tr>
+    </table></div>
+   <div><h3>Неге алдауға болмайды</h3>
+    <ol class="list">
+     <li>Ұпайды браузер емес, сервер (Supabase Edge Function) есептейді.</li>
+     <li>Дұрыс жауаптар браузерге жіберілмейді: жауапты сервер тексереді.</li>
+     <li>Рейтинг кестесіне Row Level Security бойынша тек сервер жаза алады.</li>
+     <li>Сервер уақытты тексереді: трассаны 35 секундтан жылдам өту мүмкін емес.</li>
+     <li>Rate limiting: минутына 30 жауаптан, 15 секундта бір жарыстан артық емес.</li>
+    </ol></div>
+  </div>
+ </section>
+</div>
+
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="assets/config.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/hub.js"></script>
+</body>
+</html>
