@@ -19,7 +19,7 @@
   <div class="chip"><small>МОНЕТА</small><span id="hCoins">0</span></div>
   <div class="chip"><small>ҰПАЙ</small><span id="hScore">0</span></div>
  </div>
- <div id="progress"><div class="pbar" id="pbar"><div class="fill" id="pfill"></div></div><div class="plabel">6-ТРАССА · ҚАЗАҚ ХАНДЫҒЫ · МӘРЕГЕ ДЕЙІН</div></div>
+ <div id="progress"><div class="pbar" id="pbar"><div class="fill" id="pfill"></div></div><div class="plabel" id="pLabel">ТРАССА · МӘРЕГЕ ДЕЙІН</div></div>
  <div class="hud-r">
   <div class="chip"><small>УАҚЫТ</small><span id="hTime">00:00.0</span></div>
   <div class="chip"><small>КМ/САҒ</small><span id="hSpeed">0</span></div>
@@ -40,13 +40,16 @@
 <div id="overlay">
  <!-- SELECT -->
  <div class="panel" id="scr-select">
-  <div class="qhead"><div><p class="eyebrow">Тарих Race KZ · <span id="playerName"></span></p><h2 style="font-size:clamp(26px,4vw,38px);margin-top:6px">Кіммен жарысасыз?</h2></div><div class="row"><a class="btn ghost" href="../">GAME HUB</a><a class="btn ghost" href="../#rating">Рейтинг</a><button class="btn" id="startBtn">Бастау ▶</button></div></div>
+  <div class="qhead"><div><p class="eyebrow">Тарих Race KZ · <span id="playerName"></span></p><h2 style="font-size:clamp(26px,4vw,38px);margin-top:6px">Трасса мен кейіпкер</h2></div><div class="row"><a class="btn ghost" href="../">GAME HUB</a><a class="btn ghost" href="../#rating">Рейтинг</a><button class="btn" id="startBtn">Бастау ▶</button></div></div>
+  <p class="note" style="margin-top:14px">Трасса (дәуір) — келесісі алдыңғысын мәреге дейін өткенде ашылады</p>
+  <div class="tracks" id="tracks"></div>
+  <p class="note">Кейіпкер</p>
   <div class="chars" id="chars"></div>
   <div class="controls">
    <div><b style="color:var(--light)">Компьютер</b><br><kbd>↑</kbd>/<kbd>W</kbd> газ · <kbd>↓</kbd>/<kbd>S</kbd> тежеу · <kbd>←</kbd><kbd>→</kbd> бұрылу<br><kbd>Space</kbd> нитро · <kbd>E</kbd> қабілет · <kbd>P</kbd> пауза</div>
    <div><b style="color:var(--light)">Телефон</b><br>Газ автоматты. ◀ ▶ бұрылу, НИТРО және ТЕЖЕУ батырмалары. Сұрақтарда жауапты басыңыз.</div>
   </div>
-  <p class="note" style="margin-top:12px">Мақсат: мәреге жету. Жолда 6 «Тарихи кедергі»: дұрыс жауап → +100 ұпай және нитро, қате → 3 сек айыппұл. Тасқа немесе қарсыласқа соғылсаңыз — өмір −1. Жауаптарды және ұпайды сервер тексереді.</p>
+  <p class="note" style="margin-top:12px">Мақсат: мәреге жету. Жолда 3–10 «Тарихи кедергі» (трассаға байланысты), 3 артефакт: дұрыс жауап → +100 ұпай және нитро, қате → 3 сек айыппұл. Тасқа немесе қарсыласқа соғылсаңыз — өмір −1. Жауаптарды және ұпайды сервер тексереді.</p>
  </div>
 
  <!-- LOADING -->
@@ -104,6 +107,7 @@
 <script src="../assets/config.js"></script>
 <script src="../assets/api.js"></script>
 <script src="../assets/ui.js"></script>
+<script src="../assets/tracks.js"></script>
 <script src="../assets/race.js"></script>
 </body>
 </html>

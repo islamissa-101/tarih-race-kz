@@ -49,9 +49,9 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
 
 type Ans = { kind: string; gate: number | null; correct: boolean };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const GATES = 6;
 const MIN_RACE_MS = 35_000;   // трассаны бұдан жылдам өту физикалық мүмкін емес
-const MAX_COINS = 380;        // 6-трассада 190 монета, «Сауда» қабілетімен ×2 = 380
+// Әр трассадағы монета саны × 2 («Сауда» қабілеті). Сандар трасса генераторынан алынған.
+const MAX_COINS_BY_TRACK = [0, 430, 440, 430, 420, 460, 410, 390, 400, 400, 420];
 const PAR_MS = 180_000;       // уақыт бонусы: 3 минуттан жылдам әр секунд үшін +5
 const clampInt = (v: unknown, lo: number, hi: number, dflt: number) =>
   Number.isInteger(v) ? Math.max(lo, Math.min(hi, v as number)) : dflt;
@@ -84,12 +84,12 @@ Deno.serve(async (req) => {
   const gatesDone = new Set(answers.filter((a) => a.kind === 'gate').map((a) => a.gate)).size;
 
   if (finished) {
-    if (gatesDone < GATES) return json(req, 400, { error: 'gates_missing' });
+    if (gatesDone < race.gates) return json(req, 400, { error: 'gates_missing' });
     if (elapsed < MIN_RACE_MS) return json(req, 400, { error: 'too_fast' });
   }
 
   const maxLives = race.char_idx === 6 ? 4 : 3; // Абылай хан сарбазы: +1 өмір
-  const coins = clampInt(body.coins, 0, MAX_COINS, 0);
+  const coins = clampInt(body.coins, 0, MAX_COINS_BY_TRACK[race.track] ?? 0, 0);
   const lives = finished ? clampInt(body.lives, 1, maxLives, 1) : 0;
   const timeMs = finished
     ? clampInt(body.time_ms, MIN_RACE_MS, elapsed + 2_000, elapsed)

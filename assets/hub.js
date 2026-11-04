@@ -9,7 +9,7 @@
   const NAME_RE = /^[\p{L}\p{N} .-]{2,30}$/u;
 
   const GAMES = [
-    { t: 'Тарих Race KZ', g: 'Racing + Quiz', d: '10 дәуір арқылы жарыс. Тарихи кедергіде сұраққа жауап бер: дұрыс — жалғастыр, қате — 3 сек айыппұл.', href: 'race/', main: true },
+    { t: 'Тарих Race KZ', g: 'Racing + Quiz', d: '10 трасса — сақтардан Тәуелсіздікке дейін. Тарихи кедергіде сұраққа жауап бер: дұрыс — жалғастыр, қате — 3 сек айыппұл. Келесі трасса алдыңғысын өткенде ашылады.', href: 'race/', main: true },
     { t: 'Қазақ даласының қорғаны', g: 'Action + Arcade', d: 'Басқа минитоптың ойыны' },
     { t: 'Қазақ хандығы: Хан тақты', g: 'Strategy + Tower Defense', d: 'Басқа минитоптың ойыны' },
     { t: 'Тарих аренасы', g: 'Shooter + Quiz', d: 'Басқа минитоптың ойыны' },
@@ -54,7 +54,7 @@
       const c = el('div', 'game' + (g.main ? ' main' : ' off'));
       c.appendChild(el('div', 'gg', g.g)); c.appendChild(el('div', 'gt', g.t)); c.appendChild(el('p', 'note', g.d));
       if (g.main) {
-        c.appendChild(el('p', 'sub', best ? 'Ең жақсы нәтижеңіз: ' + best.best_score + ' ұпай' : 'Әлі ойнаған жоқсыз — бірінші жарысты бастаңыз!'));
+        c.appendChild(el('p', 'sub', best ? 'Ең жақсы нәтижеңіз: ' + best.best_score + ' ұпай · өтілген трасса: ' + (best.best_level || 0) + ' / 10' : 'Әлі ойнаған жоқсыз — бірінші жарысты бастаңыз!'));
         const a = el('a', 'btn', 'Ойнау ▶'); a.href = g.href; a.style.alignSelf = 'flex-start'; c.appendChild(a);
       } else c.appendChild(el('span', 'demo-badge', 'ЖАҚЫНДА'));
       box.appendChild(c);
@@ -95,12 +95,12 @@
 
   async function results() {
     const box = $('#resultsBox'); clear(box); box.appendChild(el('p', 'note', 'Жүктелуде…'));
-    const { data, error } = await sb.from('races').select('char_idx,status,score,correct,wrong,started_at,client_time_ms').eq('user_id', S.user.id).order('started_at', { ascending: false }).limit(30);
+    const { data, error } = await sb.from('races').select('track,char_idx,status,score,correct,wrong,started_at,client_time_ms').eq('user_id', S.user.id).order('started_at', { ascending: false }).limit(30);
     clear(box);
     if (error) return box.appendChild(el('p', 'err', 'Нәтижелерді жүктеу мүмкін болмады.'));
     if (!data.length) return box.appendChild(el('p', 'note', 'Әзірге жарыс жоқ.'));
-    box.appendChild(table(['Күні', 'Кейіпкер', 'Нәтиже', 'Ұпай', 'Дұрыс', 'Қате', 'Уақыт'],
-      data.map((r) => ({ cells: [fmtDate(r.started_at), CHARS[r.char_idx]?.name || '—', STATUS[r.status] || r.status, r.score, r.correct, r.wrong, r.client_time_ms ? fmtTime(r.client_time_ms) : '—'] })), { num: [3, 4, 5] }));
+    box.appendChild(table(['Күні', 'Трасса', 'Кейіпкер', 'Нәтиже', 'Ұпай', 'Дұрыс', 'Қате', 'Уақыт'],
+      data.map((r) => ({ cells: [fmtDate(r.started_at), r.track + '-трасса', CHARS[r.char_idx]?.name || '—', STATUS[r.status] || r.status, r.score, r.correct, r.wrong, r.client_time_ms ? fmtTime(r.client_time_ms) : '—'] })), { num: [4, 5, 6] }));
   }
 
   async function admin() {
@@ -114,10 +114,10 @@
     const ub = $('#aUsers'); clear(ub);
     ub.appendChild(table(['Аты', 'Email', 'Ойын', 'Жалпы ұпай', 'Дұрыс', 'Қате', 'Рөл'],
       (users || []).map((p) => ({ cells: [p.display_name || p.full_name, p.email || '', p.games_played, p.total_score, p.correct_total, p.wrong_total, p.is_admin ? 'админ' : 'студент'] })), { num: [2, 3, 4, 5] }));
-    const { data: races } = await sb.from('races').select('user_id,char_idx,status,score,correct,wrong,started_at').order('started_at', { ascending: false }).limit(30);
+    const { data: races } = await sb.from('races').select('user_id,track,char_idx,status,score,correct,wrong,started_at').order('started_at', { ascending: false }).limit(30);
     const rb = $('#aRaces'); clear(rb);
-    rb.appendChild(table(['Күні', 'Студент', 'Кейіпкер', 'Нәтиже', 'Ұпай', 'Дұрыс', 'Қате'],
-      (races || []).map((x) => ({ cells: [fmtDate(x.started_at), names[x.user_id] || '—', CHARS[x.char_idx]?.name || '—', STATUS[x.status] || x.status, x.score, x.correct, x.wrong] })), { num: [4, 5, 6] }));
+    rb.appendChild(table(['Күні', 'Студент', 'Трасса', 'Кейіпкер', 'Нәтиже', 'Ұпай', 'Дұрыс', 'Қате'],
+      (races || []).map((x) => ({ cells: [fmtDate(x.started_at), names[x.user_id] || '—', x.track, CHARS[x.char_idx]?.name || '—', STATUS[x.status] || x.status, x.score, x.correct, x.wrong] })), { num: [5, 6, 7] }));
   }
 
   $('#googleBtn').addEventListener('click', async () => {

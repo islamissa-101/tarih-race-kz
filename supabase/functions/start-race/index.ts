@@ -49,8 +49,13 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
 // ---- /ортақ бөлік ----
 
 type Q = { id: string; type: string; prompt: string; data: unknown };
-const GATE_TYPES = ['single', 'fill', 'order', 'match', 'single', 'match'];
-const AVAILABLE_TRACKS = [6];
+// Қиындық жүйесі: әр трассада кедергі саны мен тапсырма түрлері өседі
+const GATES_BY_TRACK = [0, 3, 3, 4, 4, 5, 6, 6, 7, 8, 10];
+const TYPES_BY_TRACK: string[][] = [[],
+  ['single'], ['single', 'fill'], ['single', 'match', 'fill'], ['single', 'match', 'order'],
+  ['single', 'match', 'order', 'map'], ['single', 'fill', 'order', 'match', 'map', 'image'],
+  ['single', 'match', 'order', 'map', 'image', 'fill'], ['single', 'match', 'order', 'map', 'image', 'fill'],
+  ['single', 'match', 'order', 'map', 'image', 'fill'], ['single', 'match', 'order', 'map', 'image', 'fill']];
 const START_COOLDOWN_MS = 15_000;
 
 function shuffle<T>(a: T[]): T[] {
@@ -70,7 +75,7 @@ Deno.serve(async (req) => {
   const charIdx = body.char_idx;
   const track = body.track ?? 6;
   if (!Number.isInteger(charIdx) || (charIdx as number) < 0 || (charIdx as number) > 9) return json(req, 400, { error: 'bad_char' });
-  if (!AVAILABLE_TRACKS.includes(track as number)) return json(req, 400, { error: 'bad_track' });
+  if (!Number.isInteger(track) || (track as number) < 1 || (track as number) > 10) return json(req, 400, { error: 'bad_track' });
 
   // Профиль жоқ болса (триггерге дейін тіркелген қолданушы) — жасау
   const meta = user.user_metadata ?? {};
@@ -79,6 +84,16 @@ Deno.serve(async (req) => {
     full_name: String(meta.full_name ?? meta.name ?? (user.email ?? 'Студент').split('@')[0]).slice(0, 60),
     avatar_url: meta.avatar_url ?? null,
   }, { onConflict: 'id', ignoreDuplicates: true });
+
+  // Трассалар ретімен ашылады: алдыңғы трассаны мәреге дейін өту керек (админге бәрі ашық)
+  if ((track as number) > 1) {
+    const { data: prof } = await admin.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
+    if (!prof?.is_admin) {
+      const { count: done } = await admin.from('races').select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id).eq('track', (track as number) - 1).eq('status', 'finished');
+      if (!done) return json(req, 403, { error: 'track_locked' });
+    }
+  }
 
   // Rate limiting: 15 секундта бір жарыстан артық емес
   const since = new Date(Date.now() - START_COOLDOWN_MS).toISOString();
@@ -92,7 +107,8 @@ Deno.serve(async (req) => {
 
   const { data: qs, error: qErr } = await admin.from('questions')
     .select('id,type,prompt,data').eq('track', track).eq('active', true);
-  if (qErr || !qs || qs.length < 9) return json(req, 500, { error: 'not_enough_questions' });
+  const nGates = GATES_BY_TRACK[track as number];
+  if (qErr || !qs || qs.length < nGates + 3) return json(req, 500, { error: 'not_enough_questions' });
 
   const pool = shuffle((qs as Q[]).slice());
   const used = new Set<string>();
@@ -101,11 +117,12 @@ Deno.serve(async (req) => {
     if (q) used.add(q.id);
     return q as Q;
   };
-  const gates = GATE_TYPES.map((t) => take((q) => q.type === t));
+  const types = TYPES_BY_TRACK[track as number];
+  const gates = Array.from({ length: nGates }, (_, i) => take((q) => q.type === types[i % types.length]));
   const med = [0, 1, 2].map(() => take((q) => q.type === 'single' || q.type === 'fill'));
 
   const { data: race, error: rErr } = await admin.from('races').insert({
-    user_id: user.id, track, char_idx: charIdx,
+    user_id: user.id, track, char_idx: charIdx, gates: nGates,
     question_ids: [...gates, ...med].map((q) => q.id),
   }).select('id, started_at').single();
   if (rErr || !race) return json(req, 500, { error: 'race_create_failed' });

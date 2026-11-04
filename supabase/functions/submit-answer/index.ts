@@ -49,7 +49,7 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
 
 type Ans = { question_id: string; kind: string; gate: number | null; correct: boolean };
 const MAX_ANSWERS_PER_MIN = 30;
-const MIN_MS_PER_GATE = 3_000; // 1-қақпаға ең ерте 3 с, 2-сіне 6 с ... (шынайы жылдамдық)
+const MIN_RACE_MS = 35_000; // g-қақпаға ең ерте: g / (кедергі саны + 1) × 35 с × 0,8 (шынайы жылдамдық)
 const MAX_MED = 2;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -66,6 +66,8 @@ function isStrArr(a: unknown, max: number): a is string[] {
 function check(type: string, answer: any, correct: any): boolean {
   switch (type) {
     case 'single':
+    case 'map':
+    case 'image':
       return Number.isInteger(answer?.index) && answer.index === correct.index;
     case 'fill':
       return typeof answer?.text === 'string' && answer.text.length <= 40 &&
@@ -90,7 +92,8 @@ function check(type: string, answer: any, correct: any): boolean {
 }
 // deno-lint-ignore no-explicit-any
 function showAnswer(type: string, data: any, correct: any): string {
-  if (type === 'single') return data.options?.[correct.index] ?? '';
+  if (type === 'single' || type === 'image') return data.options?.[correct.index] ?? '';
+  if (type === 'map') return (data.options?.[correct.index] ?? '') + ' — ' + (correct.show ?? '');
   if (type === 'fill') return correct.show ?? correct.accept?.[0] ?? '';
   if (type === 'order') return correct.items.join(' → ');
   if (type === 'match') return correct.pairs.map((p: string[]) => `${p[0]} — ${p[1]}`).join('; ');
@@ -117,14 +120,14 @@ Deno.serve(async (req) => {
     if (r.status !== 'active' || r.char_idx !== 5 || r.fifty_used) return json(req, 409, { error: 'fifty_unavailable' });
     if (!(r.question_ids as string[]).includes(question_id)) return json(req, 400, { error: 'question_not_in_race' });
     const { data: fq } = await admin.from('questions').select('type, data, answer').eq('id', question_id).single();
-    if (!fq || fq.type !== 'single') return json(req, 400, { error: 'fifty_single_only' });
+    if (!fq || !['single', 'map', 'image'].includes(fq.type)) return json(req, 400, { error: 'fifty_single_only' });
     const n = (fq.data?.options ?? []).length;
     const wrongIdx = [...Array(n).keys()].filter((i) => i !== fq.answer.index).sort(() => Math.random() - 0.5).slice(0, 2);
     await admin.from('races').update({ fifty_used: true }).eq('id', race_id);
     return json(req, 200, { remove: wrongIdx });
   }
   if (kind !== 'gate' && kind !== 'med') return json(req, 400, { error: 'bad_kind' });
-  if (kind === 'gate' && (!Number.isInteger(gate) || (gate as number) < 1 || (gate as number) > 6)) return json(req, 400, { error: 'bad_gate' });
+  if (kind === 'gate' && (!Number.isInteger(gate) || (gate as number) < 1 || (gate as number) > 10)) return json(req, 400, { error: 'bad_gate' });
 
   // Rate limiting: минутына 30 жауаптан артық емес
   const since = new Date(Date.now() - 60_000).toISOString();
@@ -143,7 +146,8 @@ Deno.serve(async (req) => {
   if (kind === 'gate') {
     if (answers.some((a) => a.kind === 'gate' && a.gate === gate)) return json(req, 409, { error: 'gate_already_answered' });
     const elapsed = Date.now() - new Date(race.started_at).getTime();
-    if (elapsed < (gate as number) * MIN_MS_PER_GATE) return json(req, 400, { error: 'too_fast' });
+    if ((gate as number) > race.gates) return json(req, 400, { error: 'bad_gate' });
+    if (elapsed < ((gate as number) / (race.gates + 1)) * MIN_RACE_MS * 0.8) return json(req, 400, { error: 'too_fast' });
   } else {
     if (answers.filter((a) => a.kind === 'med').length >= MAX_MED) return json(req, 409, { error: 'med_limit' });
   }
