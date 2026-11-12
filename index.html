@@ -34,7 +34,7 @@
    <a href="#rating" data-v="rating">Рейтинг</a>
    <a href="#profile" data-v="profile">Профиль баптаулары</a>
    <a href="#results" data-v="results">Нәтижелер</a>
-   <a href="#admin" data-v="admin" id="navAdmin" class="hidden">Админ баптаулары</a>
+   <a href="#admin" data-v="admin" id="navAdmin">Админ баптаулары</a>
    <a href="#system" data-v="system">Рейтинг жүйесі</a>
   </nav>
   <div class="me"><img id="meAva" alt="" class="hidden"><span id="meName"></span><button class="btn ghost sm" id="logoutBtn">Шығу</button></div>
@@ -76,12 +76,41 @@
 
  <section class="view hidden" id="v-admin">
   <h2>Админ баптаулары</h2>
-  <div class="stats" id="aStats"></div>
-  <h3>Студенттер</h3>
-  <div class="tablewrap" id="aUsers"></div>
-  <h3>Соңғы жарыстар</h3>
-  <div class="tablewrap" id="aRaces"></div>
-  <p class="note">Сұрақтарды өзгерту: Supabase → Table Editor → questions. Админ құқығын беру: SQL Editor-да <code>update profiles set is_admin = true where email = '…';</code></p>
+  <div id="aLogin" class="prof-card admin-login">
+   <p class="sub">Админ панеліне кіру үшін құпиясөзді енгізіңіз.</p>
+   <form id="aForm" class="row" autocomplete="off">
+    <input class="txt" id="aPass" type="password" maxlength="200" placeholder="Құпиясөз" autocomplete="current-password" aria-label="Админ құпиясөзі">
+    <button class="btn" type="submit">Кіру</button>
+   </form>
+   <p class="err" id="aErr"></p>
+   <p class="note">Құпиясөз сайтта сақталмайды — оны сервер (Supabase Edge Function) тексереді. 15 минутта 5 рет қате енгізсеңіз, кіру уақытша бұғатталады.</p>
+  </div>
+  <div id="aPanel" class="hidden col">
+   <div class="stats" id="aStats"></div>
+   <div class="admin-bar">
+    <div class="admin-group"><b>Excel-ге шығару</b>
+     <div class="row"><button class="btn blue sm" id="xUsers" type="button">⬇ Қатысушылар</button><button class="btn blue sm" id="xRaces" type="button">⬇ Нәтижелер</button><button class="btn blue sm" id="xAll" type="button">⬇ Барлығы (2 парақ)</button></div></div>
+    <div class="admin-group danger"><b>Тазалау</b>
+     <div class="row"><button class="btn sm danger" id="cRaces" type="button">Нәтижелерді тазалау</button><button class="btn sm danger" id="cUsers" type="button">Қатысушыларды тазалау</button></div></div>
+    <button class="btn ghost sm" id="aOut" type="button">Админнен шығу</button>
+   </div>
+   <h3>Қатысушылар</h3>
+   <div class="tablewrap" id="aUsers"></div>
+   <h3>Нәтижелер <span class="note">(соңғы 50, толығы — Excel-де)</span></h3>
+   <div class="tablewrap" id="aRaces"></div>
+   <h3>Админ журналы</h3>
+   <div class="tablewrap" id="aLog"></div>
+   <p class="note">Сұрақтарды өзгерту: Supabase → Table Editor → questions. Құпиясөзді ауыстыру: Supabase → Edge Functions → Secrets → <code>ADMIN_PASSWORD</code> (ауыстырғанда барлық ашық админ сессиялары жабылады).</p>
+  </div>
+  <div id="aConfirm" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+   <div class="modal-card">
+    <h3 id="cTitle"></h3>
+    <p class="sub" id="cText"></p>
+    <p class="note">Растау үшін <b>ТАЗАЛАУ</b> сөзін теріңіз:</p>
+    <input class="txt" id="cWord" autocomplete="off" maxlength="20">
+    <div class="row"><button class="btn danger" id="cYes" type="button" disabled>Тазалау</button><button class="btn ghost" id="cNo" type="button">Болдырмау</button></div>
+   </div>
+  </div>
  </section>
 
  <section class="view hidden" id="v-system">
@@ -112,6 +141,7 @@
 <script src="assets/config.js"></script>
 <script src="assets/api.js"></script>
 <script src="assets/ui.js"></script>
+<script src="assets/xlsx.js"></script>
 <script src="assets/hub.js"></script>
 </body>
 </html>

@@ -168,6 +168,18 @@ create policy leaderboard_read on public.leaderboard
 revoke insert, update, delete on public.questions, public.races, public.race_answers, public.leaderboard from authenticated, anon;
 revoke all on public.questions from anon;
 
+-- ---------- 6. Админ журналы (кіру әрекеттері + тазалау) ----------
+-- Тек admin-panel функциясы жазады/оқиды. Клиентке толық жабық (RLS қосулы, саясат жоқ).
+create table if not exists public.admin_log (
+  id         bigint generated always as identity primary key,
+  user_id    uuid references auth.users(id) on delete set null,
+  action     text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists admin_log_user_time on public.admin_log(user_id, action, created_at desc);
+alter table public.admin_log enable row level security;
+revoke all on public.admin_log from authenticated, anon;
+
 -- =====================================================================
 -- СҰРАҚТАР БАЗАСЫ · 6-трасса «Қазақ хандығы» (тексерілуі керек: Саяжан)
 -- =====================================================================

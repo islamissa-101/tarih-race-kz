@@ -36,3 +36,12 @@ code{background:var(--dark2);padding:2px 6px;border-radius:6px;font-size:13px}
 @media (max-width:760px){.prof,.sys{grid-template-columns:1fr}.game.main{grid-column:auto}.top{padding:10px 12px}nav a{padding:6px 9px;font-size:13px}}
 .game .demo-badge{align-self:flex-start}
 .prof{align-items:start}
+/* Админ панелі */
+.admin-login{max-width:620px}
+.admin-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;background:var(--dark2);border:1px solid var(--line);border-radius:16px;padding:16px}
+.admin-group{display:flex;flex-direction:column;gap:8px}
+.admin-group b{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)}
+.admin-group.danger b{color:#FF8A7A}
+.btn.danger{background:#8E2F22;color:var(--light)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,10,20,.75);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-card{width:min(480px,100%);background:var(--dark2);border:2px solid #8E2F22;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px}

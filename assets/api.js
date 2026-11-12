@@ -24,15 +24,21 @@
     race_closed: 'Бұл жарыс аяқталған.',
     med_limit: 'Медициналық көмек лимиті бітті.',
     not_enough_questions: 'Дерекқорда сұрақтар жеткіліксіз (schema.sql іске қосылды ма?).',
+    bad_password: 'Құпиясөз қате.',
+    admin_expired: 'Админ сессиясы аяқталды. Құпиясөзді қайта енгізіңіз.',
+    admin_not_configured: 'Админ құпиясөзі орнатылмаған (Supabase → Edge Functions → Secrets → ADMIN_PASSWORD, кемінде 8 таңба).',
+    confirm_required: 'Растау сөзі қате.',
+    server: 'Сервер қатесі. Біраз күтіп, қайталаңыз.',
   };
 
   async function fn(name, body) {
     const { data, error } = await sb.functions.invoke(name, { body });
     if (error) {
       let code = 'network', status = 0;
-      try { status = error.context?.status || 0; const j = await error.context.json(); code = j.error || code; } catch (_) { /* желі қатесі */ }
+      let extra = {};
+      try { status = error.context?.status || 0; const j = await error.context.json(); code = j.error || code; extra = j; } catch (_) { /* желі қатесі */ }
       const e = new Error(ERRORS[code] || 'Сервермен байланыс қатесі (' + code + ').');
-      e.code = code; e.status = status;
+      e.code = code; e.status = status; e.extra = extra;
       throw e;
     }
     return data;
